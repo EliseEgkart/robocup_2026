@@ -295,9 +295,9 @@ class Nodelet(Node):
         self.cur_pos2 = self.md.pos2 - self.del_pos2
 
         # >>> JointState: 엔코더 누적값 → 바퀴 각도(rad)로 변환 후 퍼블리시
-        # URDF 축 방향 보정: TF 회전 방향만 뒤집기 (좌/우 모두)
+        # URDF 축 방향 보정: 좌측만 반전 (좌측 TF 회전 방향 보정)
         left_enc_rel = -self.cur_pos1      # left wheel (sign flipped for TF)
-        right_enc_rel = -self.cur_pos2     # right wheel (sign flipped for TF)
+        right_enc_rel = self.cur_pos2      # right wheel
 
         left_pos_rad = 2.0 * np.pi * (left_enc_rel / self.md.encoder_gain)
         right_pos_rad = 2.0 * np.pi * (right_enc_rel / self.md.encoder_gain)
