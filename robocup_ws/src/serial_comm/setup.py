@@ -12,6 +12,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name, ['launch/serial_comm.launch.py']),
         ('share/' + package_name, ['launch/teleop_launch.launch.py']),
+        ('share/' + package_name + '/config', ['config/serial_protocol.yaml']),
 
     ],
     install_requires=['setuptools'],
@@ -31,6 +32,7 @@ setup(
             'base_main_node = serial_comm.base_main:main',
             'test_md_teleop_node = serial_comm.test_md_teleop:main',
             'test_md_keyboard_node = serial_comm.test_md_keyboard:main',
+            'serial_flag_bridge_node = serial_comm.serial_flag_bridge:main',
         ],
     },
 )

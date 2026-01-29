@@ -1,0 +1,12 @@
+flags:
+  WAYPOINT_ARRIVED:
+    hex: "AA 55 01 0D 0A"
+  STOP:
+    text: "S\n"
+  START:
+    text: "F\n"
+bool:
+  true:
+    text: "F\n"
+  false:
+    text: "S\n"
