@@ -64,7 +64,7 @@ class MotorDriver:
         self.TMID = 184
         self.driverID = 1
 
-        self.encoder_gain = 60  # encoder change value over 360 degree
+        self.encoder_gain = 250  # encoder change value over 360 degree
         self.rpm1, self.rpm2 = 0, 0
         self.current1, self.current2 = 0., 0.
         self.status1, self.status2 = 0, 0
