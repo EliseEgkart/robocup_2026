@@ -278,8 +278,8 @@ class Nodelet(Node):
         self.msg_wheelmotor.current1 = int(self.md.current1)
         self.msg_wheelmotor.current2 = int(self.md.current2)
 
-        # >>> 수정: 왼쪽/오른쪽 바퀴 속도 부호 정리 (왼쪽 부호 반전)
-        rpm_left = -self.md.rpm1    # left wheel
+        # >>> 수정: 모터 드라이버에서 이미 좌측 부호 보정됨 (추가 반전 제거)
+        rpm_left = self.md.rpm1     # left wheel
         rpm_right = self.md.rpm2    # right wheel
 
         self.msg_wheelmotor.v_x = (rpm_left + rpm_right) * np.pi * self.wheel_diameter / (60 * 2)
@@ -295,8 +295,7 @@ class Nodelet(Node):
         self.cur_pos2 = self.md.pos2 - self.del_pos2
 
         # >>> JointState: 엔코더 누적값 → 바퀴 각도(rad)로 변환 후 퍼블리시
-        # 왼쪽 바퀴는 오돔에서와 동일하게 부호를 반전해서 사용
-        left_enc_rel = -self.cur_pos1      # left wheel (sign flipped)
+        left_enc_rel = self.cur_pos1       # left wheel
         right_enc_rel = self.cur_pos2      # right wheel
 
         left_pos_rad = 2.0 * np.pi * (left_enc_rel / self.md.encoder_gain)
@@ -317,9 +316,9 @@ class Nodelet(Node):
         self.last_pos1 = self.cur_pos1
         self.last_pos2 = self.cur_pos2
 
-        # >>> 수정: 오돔용 엔코더 부호 보정 (왼쪽만 반전)
-        delta_left_enc = -delta_pos1      # left wheel encoder (sign flipped)
-        delta_right_enc = delta_pos2      # right wheel encoder as is
+        # >>> 수정: 오돔용 엔코더 부호 보정 제거 (드라이버에서 이미 보정)
+        delta_left_enc = delta_pos1       # left wheel encoder
+        delta_right_enc = delta_pos2      # right wheel encoder
 
         left_wheel_disp = (delta_left_enc / self.md.encoder_gain) * (np.pi * self.wheel_diameter)
         right_wheel_disp = (delta_right_enc / self.md.encoder_gain) * (np.pi * self.wheel_diameter)
