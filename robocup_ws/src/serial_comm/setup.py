@@ -15,7 +15,10 @@ setup(
         ('share/' + package_name + '/config', ['config/serial_protocol.yaml']),
 
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'pyyaml',
+    ],
     zip_safe=True,
     maintainer='moonshot',
     maintainer_email='ky942400@gmail.com',

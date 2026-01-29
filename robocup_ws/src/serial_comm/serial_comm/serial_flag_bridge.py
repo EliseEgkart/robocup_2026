@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
+import os
 import time
-from typing import Optional
+from typing import Dict, Optional
 
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, String
 
 import serial
+import yaml
+from ament_index_python.packages import get_package_share_directory
 
 
 def _parse_hex_bytes(s: str) -> bytes:
@@ -20,6 +23,16 @@ def _parse_hex_bytes(s: str) -> bytes:
             t = t[2:]
         out.append(int(t, 16))
     return bytes(out)
+
+
+def _payload_from_entry(entry: Dict) -> Optional[bytes]:
+    if not entry:
+        return None
+    if "hex" in entry and entry["hex"]:
+        return _parse_hex_bytes(str(entry["hex"]))
+    if "text" in entry and entry["text"] is not None:
+        return str(entry["text"]).encode("utf-8")
+    return None
 
 
 class SerialLink:
@@ -95,12 +108,13 @@ class SerialFlagBridge(Node):
         self.declare_parameter("baudrate", 115200)
         self.declare_parameter("timeout_s", 0.1)
         self.declare_parameter("topic", "flagf")
-        self.declare_parameter("msg_type", "bool")  # "bool" or "string"
+        self.declare_parameter("msg_type", "string")  # "bool" or "string"
         self.declare_parameter("edge_trigger", True)
         self.declare_parameter("send_on_true", True)
         self.declare_parameter("tx_hex", "")       # e.g. "AA 55 01 0D 0A"
         self.declare_parameter("tx_text", "F")     # used if tx_hex is empty
         self.declare_parameter("trigger_text", "1")  # for string messages
+        self.declare_parameter("protocol_path", "")
 
         port = self.get_parameter("port").get_parameter_value().string_value
         baudrate = self.get_parameter("baudrate").get_parameter_value().integer_value
@@ -111,12 +125,10 @@ class SerialFlagBridge(Node):
         self._send_on_true = self.get_parameter("send_on_true").get_parameter_value().bool_value
         self._trigger_text = self.get_parameter("trigger_text").get_parameter_value().string_value
 
-        tx_hex = self.get_parameter("tx_hex").get_parameter_value().string_value.strip()
-        if tx_hex:
-            self._tx_bytes = _parse_hex_bytes(tx_hex)
-        else:
-            tx_text = self.get_parameter("tx_text").get_parameter_value().string_value
-            self._tx_bytes = tx_text.encode("utf-8")
+        self._flag_map: Dict[str, bytes] = {}
+        self._bool_map: Dict[str, bytes] = {}
+        self._load_protocol()
+        self._tx_bytes = self._fallback_payload()
 
         self._link = SerialLink(port=port, baudrate=baudrate, timeout_s=timeout_s)
         self._link.open()
@@ -138,12 +150,50 @@ class SerialFlagBridge(Node):
         finally:
             super().destroy_node()
 
-    def _send(self) -> None:
+    def _send_bytes(self, payload: bytes, label: str) -> None:
         try:
-            self._link.send(self._tx_bytes)
-            self.get_logger().info(f"sent {self._tx_bytes!r}")
+            self._link.send(payload)
+            self.get_logger().info(f"sent {label}: {payload!r}")
         except Exception as exc:
             self.get_logger().error(f"send failed: {exc}")
+
+    def _load_protocol(self) -> None:
+        protocol_path = self.get_parameter("protocol_path").get_parameter_value().string_value.strip()
+        if not protocol_path:
+            share_dir = get_package_share_directory("serial_comm")
+            protocol_path = os.path.join(share_dir, "config", "serial_protocol.yaml")
+
+        if not os.path.isfile(protocol_path):
+            self.get_logger().warn(f"protocol file not found: {protocol_path}")
+            return
+
+        try:
+            with open(protocol_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+        except Exception as exc:
+            self.get_logger().error(f"failed to load protocol: {exc}")
+            return
+
+        flags = data.get("flags", {}) or {}
+        for key, entry in flags.items():
+            payload = _payload_from_entry(entry or {})
+            if payload:
+                self._flag_map[str(key)] = payload
+
+        bool_map = data.get("bool", {}) or {}
+        true_payload = _payload_from_entry(bool_map.get("true", {}) or {})
+        false_payload = _payload_from_entry(bool_map.get("false", {}) or {})
+        if true_payload:
+            self._bool_map["true"] = true_payload
+        if false_payload:
+            self._bool_map["false"] = false_payload
+
+    def _fallback_payload(self) -> bytes:
+        tx_hex = self.get_parameter("tx_hex").get_parameter_value().string_value.strip()
+        if tx_hex:
+            return _parse_hex_bytes(tx_hex)
+        tx_text = self.get_parameter("tx_text").get_parameter_value().string_value
+        return tx_text.encode("utf-8")
 
     def _on_bool(self, msg: Bool) -> None:
         should_send = (msg.data is True) if self._send_on_true else (msg.data is False)
@@ -152,12 +202,16 @@ class SerialFlagBridge(Node):
         if self._edge_trigger and self._last_bool is True:
             return
         self._last_bool = True
-        self._send()
+        payload = self._bool_map.get("true" if msg.data else "false", self._tx_bytes)
+        self._send_bytes(payload, "bool")
 
     def _on_string(self, msg: String) -> None:
-        if msg.data != self._trigger_text:
+        payload = self._flag_map.get(msg.data)
+        if payload:
+            self._send_bytes(payload, msg.data)
             return
-        self._send()
+        if msg.data == self._trigger_text:
+            self._send_bytes(self._tx_bytes, "trigger_text")
 
 
 def main(args=None):
