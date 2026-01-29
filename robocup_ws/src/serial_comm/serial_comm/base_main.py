@@ -15,6 +15,7 @@ import sensor_msgs_py.point_cloud2 as pc2
 
 from serial_comm.motor_driver import MotorDriver
 
+
 class Nodelet(Node):
     def __init__(self):
         super().__init__('base_main')
@@ -124,8 +125,29 @@ class Nodelet(Node):
         self.marker_rotation_en_count = 0.
         self.marker7_1 = True
 
+        # -------------------------
+        # DEBUG: motor rx logging / timer lag
+        # -------------------------
+        self.DEBUG_MOTOR_RX = True          # 모터 수신(raw) 로그 ON/OFF
+        self.DEBUG_MOTOR_RX_HZ = 10.0       # 초당 몇 번 찍을지 (5~20 권장)
+        self._last_motor_log_time = self.get_clock().now()
+
+        self.DEBUG_TIMER_LAG = True         # timer callback 실제 주기 확인
+        self._last_timer_time = self.get_clock().now()
+
     def timer_callback(self):
         self.loopcnt += 1
+
+        # -------------------------
+        # DEBUG: timer callback 주기(밀림) 체크
+        # -------------------------
+        if self.DEBUG_TIMER_LAG:
+            now_t = self.get_clock().now()
+            dt_timer = (now_t - self._last_timer_time).nanoseconds / 1e9
+            self._last_timer_time = now_t
+            # 기대(0.02s)보다 많이 밀리면 경고
+            if dt_timer > 0.05:
+                self.get_logger().warn(f"[TIMER_LAG] dt_timer={dt_timer:.3f}s (expected ~{self.dt:.3f}s)")
 
         if self.firstloop:
             self.md.send_vel_cmd(self.velocity1, self.velocity2)
@@ -215,8 +237,38 @@ class Nodelet(Node):
             self.msg_wheelmotor.target1 = int(self.target_pos1)
             self.msg_wheelmotor.target2 = int(self.target_pos2)
 
+        # -------------------------
         # 모터 상태 수신
+        # -------------------------
         self.md.recv_motor_state()
+
+        # -------------------------
+        # DEBUG: recv 직후 raw 값 로깅 (throttle)
+        # - 콘솔 로그가 과하면 오히려 루프가 밀리니 주기 제한
+        # -------------------------
+        if self.DEBUG_MOTOR_RX:
+            now = self.get_clock().now()
+            dt_log = (now - self._last_motor_log_time).nanoseconds / 1e9
+            if dt_log >= (1.0 / self.DEBUG_MOTOR_RX_HZ):
+                self._last_motor_log_time = now
+
+                pos1 = self.md.pos1
+                pos2 = self.md.pos2
+                rpm1 = self.md.rpm1
+                rpm2 = self.md.rpm2
+                cur1 = self.md.current1
+                cur2 = self.md.current2
+
+                # joint_states에서 쓰는 "상대 엔코더"도 같이 보기
+                rel1 = pos1 - self.del_pos1
+                rel2 = pos2 - self.del_pos2
+
+                self.get_logger().info(
+                    f"[MOTOR_RX] pos1={pos1} pos2={pos2} | "
+                    f"rpm1={rpm1:.2f} rpm2={rpm2:.2f} | "
+                    f"cur1={int(cur1)} cur2={int(cur2)} | "
+                    f"rel1={rel1:.1f} rel2={rel2:.1f}"
+                )
 
         # WheelMotor 메시지 채우기
         self.msg_wheelmotor.position1 = self.md.pos1
@@ -462,6 +514,7 @@ class Nodelet(Node):
 
     def Lowpass_filter(self, vel_input, vel_input_1, alpha):
         return alpha * vel_input + (1 - alpha) * vel_input_1
+
 
 def main(args=None):
     rclpy.init(args=args)
