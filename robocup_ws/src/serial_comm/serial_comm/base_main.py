@@ -466,9 +466,8 @@ class Nodelet(Node):
         def A(i):
             return axes[i] if i < len(axes) else 0.0
 
-        self.joy_lr = -A(1)
-        self.joy_fb = -A(2)
-
+        self.joy_fb = A(1)
+        self.joy_lr = A(2)
         self.joy_r2 = A(4)
         self.joy_l2 = A(5)
 
