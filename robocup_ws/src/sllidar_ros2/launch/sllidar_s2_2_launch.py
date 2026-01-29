@@ -12,7 +12,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     channel_type1 = LaunchConfiguration('channel_type1', default='serial')
-    serial_port1 = LaunchConfiguration('serial_port1', default='/dev/ttyUSB_LIDAR1')
+    serial_port1 = LaunchConfiguration('serial_port1', default='/dev/ttyUSB_LIDAR2')
     serial_baudrate1 = LaunchConfiguration('serial_baudrate1', default='1000000') # for s2 is 1000000
     frame_id1 = LaunchConfiguration('frame_id1', default='lidar1_link')
     inverted1 = LaunchConfiguration('inverted1', default='false')
@@ -21,7 +21,7 @@ def generate_launch_description():
     
 
     channel_type2 = LaunchConfiguration('channel_type2', default='serial')
-    serial_port2 = LaunchConfiguration('serial_port2', default='/dev/ttyUSB_LIDAR2')
+    serial_port2 = LaunchConfiguration('serial_port2', default='/dev/ttyUSB2')
     serial_baudrate2 = LaunchConfiguration('serial_baudrate2', default='1000000') # for s2 is 1000000
     frame_id2 = LaunchConfiguration('frame_id2', default='lidar2_link')
     inverted2 = LaunchConfiguration('inverted2', default='false')
