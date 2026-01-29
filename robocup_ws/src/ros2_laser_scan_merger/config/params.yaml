@@ -10,7 +10,7 @@
     laser1B: 0
     laser1G: 0
     laser1R: 255
-    laser1XOff:  0.345   # URDF: lidar1_link x=0.345
+    laser1XOff:  -0.345   # URDF: lidar1_link x=0.345
     laser1YOff:  0.0     # URDF: lidar1_link y=0.0
     laser1ZOff:  0.04    # URDF: lidar1_link z=0.04
     laser2Alpha: 180.0
@@ -19,7 +19,7 @@
     laser2B: 255
     laser2G: 0
     laser2R: 0
-    laser2XOff: -0.345   # URDF: lidar2_link x=-0.345
+    laser2XOff: 0.345   # URDF: lidar2_link x=-0.345
     laser2YOff:  0.0     # URDF: lidar2_link y=0.0
     laser2ZOff:  0.04    # URDF: lidar2_link z=0.04
     pointCloudTopic: cloud_in
