@@ -30,6 +30,7 @@ setup(
             'imu_publisher_node = serial_comm.imu_publisher:main',
             'base_main_node = serial_comm.base_main:main',
             'test_md_teleop_node = serial_comm.test_md_teleop:main',
+            'test_md_keyboard_node = serial_comm.test_md_keyboard:main',
         ],
     },
 )

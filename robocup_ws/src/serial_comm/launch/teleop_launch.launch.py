@@ -14,6 +14,6 @@ def generate_launch_description():
             executable='test_md_teleop_node',
             name='test_md_teleop_node',
             output='screen',
-            parameters=[{'max_speed': 40}]
+            parameters=[{'max_speed': 200}]
         ),
     ])
