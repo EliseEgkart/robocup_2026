@@ -166,16 +166,16 @@ controller_server:
       transform_tolerance: 0.2
       xy_goal_tolerance: 0.25
       trans_stopped_velocity: 0.25
-      short_circuit_trajectory_evaluation: False
+      short_circuit_trajectory_evaluation: True
       stateful: True
       critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
-      BaseObstacle.scale: 1.5
-      PathAlign.scale: 12.0
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
-      GoalAlign.scale: 12.0
+      GoalAlign.scale: 24.0
       GoalAlign.forward_point_distance: 0.1
-      PathDist.scale: 12.0
-      GoalDist.scale: 12.0
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
@@ -199,7 +199,7 @@ local_costmap:
       resolution: 0.05
       robot_radius: 0.4
 
-      plugins: ["static_layer", "obstacle_layer", "voxel_layer", "inflation_layer" ]
+      plugins: ["voxel_layer", "inflation_layer" ]
       # keepout_filter:
       #   plugin: "nav2_costmap_2d::KeepoutFilter"
       #   enabled: True
@@ -209,19 +209,7 @@ local_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         # inflation_radius: 0.55
-        inflation_radius: 0.35
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          obstacle_range: 3.0
-          raytrace_range: 4.0
+        inflation_radius: 0.1
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -238,8 +226,6 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          obstacle_range: 3.0
-          raytrace_range: 4.0
       static_layer:
         map_subscribe_transient_local: True
       always_send_full_costmap: True
@@ -286,7 +272,7 @@ global_costmap:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         # inflation_radius: 0.55
-        inflation_radius: 0.35
+        inflation_radius: 0.25
       always_send_full_costmap: True
   global_costmap_client:
     ros__parameters:
