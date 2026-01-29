@@ -27,14 +27,15 @@
   <!-- Base Link -->
   <link name="chassis">
     <collision name="base_collision">
-      <origin xyz="0 0 0.3" rpy="0 0 0"/>
+      <origin xyz="0 0 0.305" rpy="0 0 0"/>
       <geometry>
-        <box size="0.6 0.35 0.1"/>
+        <box size="0.225 0.36 0.61"/>
       </geometry>
     </collision>
     <visual name="base_visual">
+      <origin xyz="0 0 0.305" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="/home/moonshot/robocup_2026/robocup_ws/src/robot_description/description/meshes/amr_body.stl" scale="0.001 0.001 0.001"/>
+        <box size="0.225 0.36 0.61"/>
       </geometry>
       <material name="white"/>
     </visual>
@@ -82,7 +83,7 @@
     <visual name="wheel_left_visual">
       <origin xyz="0 0 0" rpy="-1.57 0 0"/>
       <geometry>
-        <mesh filename="/home/moonshot/robocup_2026/robocup_ws/src/robot_description/description/meshes/amr_wheel.stl" scale="0.001 0.001 0.001"/>
+        <cylinder radius="0.085" length="0.046"/>
       </geometry>
       <material name="black"/>
     </visual>
@@ -99,7 +100,7 @@
     <visual name="wheel_right_visual">
       <origin xyz="0 0 0" rpy="-1.57 0 0"/>
       <geometry>
-        <mesh filename="/home/moonshot/robocup_2026/robocup_ws/src/robot_description/description/meshes/amr_wheel.stl" scale="0.001 0.001 0.001"/>
+        <cylinder radius="0.085" length="0.046"/>
       </geometry>
       <material name="black"/>
     </visual>
