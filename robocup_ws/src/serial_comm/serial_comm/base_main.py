@@ -416,7 +416,7 @@ class Nodelet(Node):
             velocity_right = (linear_velocity + (self.wheel_separation / 2.0) * angular_velocity)
             velocity_left = (linear_velocity - (self.wheel_separation / 2.0) * angular_velocity)
 
-            encoder_delta_right = -(velocity_right * control_dt * self.md.encoder_gain) / (np.pi * self.wheel_diameter)
+            encoder_delta_right = (velocity_right * control_dt * self.md.encoder_gain) / (np.pi * self.wheel_diameter)
             encoder_delta_left = (velocity_left * control_dt * self.md.encoder_gain) / (np.pi * self.wheel_diameter)
 
             self.target_pos1 += encoder_delta_left
