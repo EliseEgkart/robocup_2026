@@ -295,7 +295,8 @@ class Nodelet(Node):
         self.cur_pos2 = self.md.pos2 - self.del_pos2
 
         # >>> JointState: 엔코더 누적값 → 바퀴 각도(rad)로 변환 후 퍼블리시
-        left_enc_rel = self.cur_pos1       # left wheel
+        # URDF 축 방향 보정: 좌측만 부호 반전해서 시각화 방향 맞춤
+        left_enc_rel = -self.cur_pos1      # left wheel (sign flipped for TF)
         right_enc_rel = self.cur_pos2      # right wheel
 
         left_pos_rad = 2.0 * np.pi * (left_enc_rel / self.md.encoder_gain)
@@ -330,8 +331,9 @@ class Nodelet(Node):
         self.last_time = current_time
 
         # 선속도 / 각속도
-        linear_velocity = -(left_wheel_disp + right_wheel_disp) / (2.0 * dt)
-        angular_velocity = -(right_wheel_disp - left_wheel_disp) / (self.wheel_separation * dt)
+        # 드라이버에서 좌측 부호 보정이 끝난 상태이므로 추가 반전 제거
+        linear_velocity = (left_wheel_disp + right_wheel_disp) / (2.0 * dt)
+        angular_velocity = (right_wheel_disp - left_wheel_disp) / (self.wheel_separation * dt)
 
         # 포즈 적분
         self.pose_x += linear_velocity * np.cos(self.pose_theta) * dt
